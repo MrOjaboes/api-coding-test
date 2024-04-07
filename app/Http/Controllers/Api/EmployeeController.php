@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Company;
+use App\Models\Employee;
 use App\Traits\ApiResponder;
 use Illuminate\Http\Request;
 use App\Services\UploadService;
@@ -14,9 +14,20 @@ class EmployeeController extends Controller
 {
     use ApiResponder;
 
-    public function index(Request $request)
+    public function index()
     {
-        $employees = Employee::latest('id')->paginate(20);
+        if (request()->sort) {
+            if (request()->sort == "latest") {
+                $query = Employee::latest('id');
+            }
+            if (request()->sort == "oldest") {
+                $query = Employee::oldest('id');
+            }
+        }else{
+
+            $query = Employee::all();
+        }
+        $employees = $query->paginate(20);
         if (count($employees) < 1)  return $this->errorResponse('No record found', 422);
         return $this->successResponse($employees);
     }
@@ -41,7 +52,7 @@ class EmployeeController extends Controller
         } else {
 
             // Send request to end point
-            $company = Employee::create([
+            $employee = Employee::create([
                 'first_name' =>$request->first_name,
                 'last_name' =>$request->last_name,
                 'email' =>$request->email,
@@ -52,7 +63,7 @@ class EmployeeController extends Controller
                 'photo' => $request->first_name,
             ]);
 
-            return $this->successResponse($company);
+            return $this->successResponse($employee);
         }
     }
     public function show($id)

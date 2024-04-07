@@ -13,9 +13,21 @@ class CompanyController extends Controller
 {
     use ApiResponder;
 
-    public function index(Request $request)
+    public function index()
     {
-        $companies = Company::latest('id')->paginate(20);
+
+        if (request()->sort) {
+            if (request()->sort == "latest") {
+                $query = Company::latest('id');
+            }
+            if (request()->sort == "oldest") {
+                $query = Company::oldest('id');
+            }
+        }else{
+
+            $query = Company::all();
+        }
+        $companies = $query->paginate(20);
         if (count($companies) < 1)  return $this->errorResponse('No record found', 422);
         return $this->successResponse($companies);
     }
