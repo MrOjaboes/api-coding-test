@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Employee;
 use App\Traits\ApiResponder;
 use Illuminate\Http\Request;
 use App\Services\UploadService;
@@ -25,9 +24,9 @@ class EmployeeController extends Controller
             }
         }else{
 
-            $query = Employee::all();
+            $query = Employee::orderBy("created_at","DESC");
         }
-        $employees = $query->paginate(20);
+        $employees = $query->paginate(10);
         if (count($employees) < 1)  return $this->errorResponse('No record found', 422);
         return $this->successResponse($employees);
     }
@@ -37,20 +36,24 @@ class EmployeeController extends Controller
         $data = Validator::make($request->all(), [
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
-            'email' => 'required|email|max:100',
-            'contact' => 'required|max:11',
+            'email' => 'required|email|unique:employees,email',
+            'contact' => 'required|max:11|unique:employees,contact',
             'address' => 'required|max:11',
             'gender' => 'required|in:Male,Female',
             'date_of_birth' => 'required',
             'photo' => 'nullable|image|max:200',
         ]);
+
         if ($data->fails()) {
             return response()->json([
                 'status' => 400,
                 'message' => $data->errors(),
             ]);
         } else {
-
+            if ($request->hasFile('photo')) {
+                $fileName = $request->photo->getClientOriginalName();
+                $img_url = UploadService::upload($request->photo, 'Profile', $fileName);
+            }
             // Send request to end point
             $employee = Employee::create([
                 'first_name' =>$request->first_name,
@@ -60,7 +63,7 @@ class EmployeeController extends Controller
                 'gender' =>$request->gender,
                 'date_of_birth' =>$request->date_of_birth,
                 'address' =>$request->address,
-                'photo' => $request->first_name,
+                'photo' => $request->photo ? $img_url : null,
             ]);
 
             return $this->successResponse($employee);
@@ -73,18 +76,31 @@ class EmployeeController extends Controller
         return $this->successResponse($employee);
     }
 
-    public function updateLogo(Request $request, $id)
+
+    public function updatePhoto(Request $request,$id)
     {
-        $employee = Employee::find($id);
-        if (!$employee)  return $this->errorResponse('No record found', 422);
-        if ($request->hasFile('photo')) {
-            $fileName = $request->photo->getClientOriginalName();
-            $img_url = UploadService::upload($request->photo, 'Profile', $fileName);
-        }
-        $employee->update([
-            'logo' => $img_url,
+        $data = Validator::make($request->all(), [
+            'photo' => 'required|image|max:200',
         ]);
-        return $this->successResponse($employee);
+
+        if ($data->fails()) {
+            return response()->json([
+                'status' => 400,
+                'message' => $data->errors(),
+            ]);
+        } else {
+            $employee = Employee::find($id);
+            if (!$employee)  return $this->errorResponse('No record found', 422);
+            if ($request->hasFile('photo')) {
+                $fileName = $request->photo->getClientOriginalName();
+                $img_url = UploadService::upload($request->photo, 'Profile', $fileName);
+            }
+            $employee->update([
+                'photo' => $img_url,
+            ]);
+            return $this->successResponse($employee);
+
+        }
     }
     public function update(Request $request, $id)
     {

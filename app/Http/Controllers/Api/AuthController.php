@@ -27,7 +27,7 @@ class AuthController extends Controller
             ]);
         } else {
            $user = User::create([
-                'name' => $request->name,
+                'name' => str_replace(' ','',$request->name),
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
             ]);
@@ -54,11 +54,16 @@ class AuthController extends Controller
                 ]);
             } else {
                 $user->token = $user->createToken($user->name.' API Token', ['user'])->plainTextToken;
-
-               // $token = $user->createToken('auth_token', ['login'])->plainTextToken;
                 return $this->successResponse($user);
 
             }
         }
+    }
+
+    public function logout()
+    {
+        
+        auth()->user()->tokens()->delete();
+        return ['message' => 'successfully logged out and the token was successfully deleted'];
     }
 }

@@ -31,9 +31,9 @@ The application was a requirement for my test "On the Job Application process" i
 
 You can log into the application with this credentials (if you did the database seeding).
 
--   Username: `admin@gmail.com`
--   Password: `admin`
+-   Username: `user@gmail.com`
+-   Password: `1234567890`
 
 ## API Documentation on how to use the endpoints
-You can use this link to test all the endpoints after the setup
+You can use this link to test all the endpoints after the setup via "https://documenter.getpostman.com/view/22559003/2sA35MxycH"
   
