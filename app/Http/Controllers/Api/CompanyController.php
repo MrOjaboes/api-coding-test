@@ -27,7 +27,7 @@ class CompanyController extends Controller
 
             $query = Company::orderBy("created_at","DESC");
         }
-        $companies = $query->paginate(20);
+        $companies = $query->paginate(10);
         if (count($companies) < 1)  return $this->errorResponse('No record found', 422);
         return $this->successResponse($companies);
     }
